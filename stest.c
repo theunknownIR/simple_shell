@@ -74,6 +74,8 @@ int main(void)
 
 /**
  * execute_command - Tokenizes user input and executes the command
+ * @cmd: Pointer to the user input
+ * @path: Pointer to the PATH environment variable
  * Return void
  */
 void execute_command(char *cmd, char *path)
