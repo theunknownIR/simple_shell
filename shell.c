@@ -2,7 +2,6 @@
 
 /**
  * execute_command - Tokenizes user input and executes the command
- * print_env - Prints the environment variables
  * @cmd: Pointer to the user input
  * @path: Pointer to the PATH environment variable
  * Return void
@@ -69,24 +68,46 @@ int main(void)
 void execute_command(char *cmd, char *path)
 {
 	pid_t pid;
-	char *token = strtok(cmd, " ");
-	char *args[3];
+	char *token;
+	char **args;
 	char *full_path;
+	int i = 0;
+	int j;
 
-	if (token)
+	token = strtok(cmd, " ");
+	args = malloc(sizeof(char *) * 10);
+
+	while (token)
 	{
-		args[0] = strdup(token);
+		args[i] = strdup(token);
 		token = strtok(NULL, " ");
-		if (token)
+		i++;
+	}
+	args[i] = NULL;
+
+	if (strcmp(args[0], "ls") == 0)
+	{
+		pid = fork();
+		if (pid == -1)
 		{
-			args[1] = strdup(token);
-			args[2] = NULL;
+			perror("fork");
+			exit(EXIT_FAILURE);
+		}
+		else if (pid == 0)
+		{
+			execvp("ls", args);
+			perror("execvp");
+			exit(EXIT_FAILURE);
 		}
 		else
 		{
-			args[1] = NULL;
-		}
+			int status;
 
+			waitpid(pid, &status, 0);
+		}
+	}
+	else
+	{
 		full_path = malloc(sizeof(char) * (strlen(path) + strlen(args[0]) + 2));
 		sprintf(full_path, "%s/%s", path, args[0]);
 
@@ -98,30 +119,9 @@ void execute_command(char *cmd, char *path)
 		}
 		else if (pid == 0)
 		{
-			if (strcmp(args[0], "ls") == 0)
-			{
-				if (args[1] && strcmp(args[1], "-l") == 0)
-				{
-					execl("/bin/ls", "ls", "-l", NULL);
-				}
-				else if (args[1] && strcmp(args[1], "/var") == 0)
-				{
-					execl("/bin/ls", "ls", "/var", NULL);
-				}
-				else
-				{
-					execl("/bin/ls", "ls", NULL);
-				}
-			}
-			else if (access(full_path, X_OK) == 0)
-			{
-				execv(full_path, args);
-			}
-			else
-			{
-				printf("%s: Command not found!\n", args[0]);
-				exit(EXIT_FAILURE);
-			}
+			execv(full_path, args);
+			perror("execv");
+			exit(EXIT_FAILURE);
 		}
 		else
 		{
@@ -131,16 +131,18 @@ void execute_command(char *cmd, char *path)
 		}
 
 		free(full_path);
-		free(args[0]);
-		if (args[1])
-		{
-			free(args[1]);
-		}
 	}
+
+	for (j = 0; j < i; j++)
+	{
+		free(args[j]);
+	}
+	free(args);
 }
 
 /**
- * print_env - Prints the environment variables -task 5
+ * print_env - Prints the environment variables
+ * Print an error message if execl fails
  * Return void
  */
 void print_env(void)
@@ -156,6 +158,8 @@ void print_env(void)
 	else if (pid == 0)
 	{
 		execl("/usr/bin/env", "env", NULL);
+		perror("execl");
+		exit(EXIT_FAILURE);
 	}
 	else
 	{

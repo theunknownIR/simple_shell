@@ -9,4 +9,6 @@
 
 #define D_PROMPT "$ "
 
+void execute_command(char *cmd, char *path);
+void print_env(void);
 #endif
