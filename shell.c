@@ -1,9 +1,4 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <string.h>
-
-#define D_PROMPT "$ "
+#include "shell.h"
 
 /**
  * execute_command - Tokenizes user input and executes the command
