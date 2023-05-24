@@ -13,7 +13,7 @@ void print_env(void);
 /**
  * main - main function of the program
  *
- * Reads user input, parses it, & executes the corresp. command
+ * Reads user input, parses it, & executes the corresponding command
  * Allocate memory for user input...100%
  * Read user input...100%
  * Remove newline character from input...100%
@@ -68,6 +68,7 @@ int main(void)
  */
 void execute_command(char *cmd, char *path)
 {
+	pid_t pid;
 	char *token = strtok(cmd, " ");
 	char *args[3];
 	char *full_path;
@@ -83,34 +84,50 @@ void execute_command(char *cmd, char *path)
 		}
 		else
 		{
-		   args[1] = NULL;
+			args[1] = NULL;
 		}
 
 		full_path = malloc(sizeof(char) * (strlen(path) + strlen(args[0]) + 2));
 		sprintf(full_path, "%s/%s", path, args[0]);
 
-		if (strcmp(args[0], "ls") == 0)
+		pid = fork();
+		if (pid == -1)
 		{
-			if (args[1] && strcmp(args[1], "-l") == 0)
+			perror("fork");
+			exit(EXIT_FAILURE);
+		}
+		else if (pid == 0)
+		{
+			if (strcmp(args[0], "ls") == 0)
 			{
-				system("ls -l");
+				if (args[1] && strcmp(args[1], "-l") == 0)
+				{
+					execl("/bin/ls", "ls", "-l", NULL);
+				}
+				else if (args[1] && strcmp(args[1], "/var") == 0)
+				{
+					execl("/bin/ls", "ls", "/var", NULL);
+				}
+				else
+				{
+					execl("/bin/ls", "ls", NULL);
+				}
 			}
-			else if (args[1] && strcmp(args[1], "/var") == 0)
+			else if (access(full_path, X_OK) == 0)
 			{
-				system("ls /var");
+				execv(full_path, args);
 			}
 			else
 			{
-				system("ls");
+				printf("%s: Command not found!\n", args[0]);
+				exit(EXIT_FAILURE);
 			}
-		}
-		else if (access(full_path, X_OK) == 0)
-		{
-			execv(full_path, args);
 		}
 		else
 		{
-			printf("%s: Command not found.\n", args[0]);
+			int status;
+
+			waitpid(pid, &status, 0);
 		}
 
 		free(full_path);
@@ -128,5 +145,22 @@ void execute_command(char *cmd, char *path)
  */
 void print_env(void)
 {
-	system("env");
+	pid_t pid;
+
+	pid = fork();
+	if (pid == -1)
+	{
+		perror("fork");
+		exit(EXIT_FAILURE);
+	}
+	else if (pid == 0)
+	{
+		execl("/usr/bin/env", "env", NULL);
+	}
+	else
+	{
+		int status;
+
+		waitpid(pid, &status, 0);
+	}
 }
