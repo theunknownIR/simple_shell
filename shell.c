@@ -1,11 +1,11 @@
-#include "shell.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <string.h>
+#include <sys/wait.h>
 
-/**
- * execute_command - Tokenizes user input and executes the command
- * @cmd: Pointer to the user input
- * @path: Pointer to the PATH environment variable
- * Return void
- */
+#define D_PROMPT "$ "
+
 void execute_command(char *cmd, char *path);
 void print_env(void);
 
@@ -75,13 +75,13 @@ void execute_command(char *cmd, char *path)
 	int j;
 
 	token = strtok(cmd, " ");
-	args = malloc(sizeof(char *) * 10);
-
+	args = malloc(sizeof(char *));
 	while (token)
 	{
 		args[i] = strdup(token);
 		token = strtok(NULL, " ");
 		i++;
+		args = realloc(args, sizeof(char *) * (i + 1));
 	}
 	args[i] = NULL;
 
