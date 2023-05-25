@@ -5,6 +5,7 @@
 #include <sys/wait.h>
 
 #define D_PROMPT "$ "
+#define MAX_CMD_LENGTH 64
 
 void execute_command(char *cmd, char *path);
 void print_env(void);
@@ -20,26 +21,36 @@ void print_env(void);
  * Check if user wants to print environment variables...100%
  * Tokenize user input and execute command...100%
  * Search for command in PATH environment variable...100%
+ * @argc: argument count number of command line arguments
+ * @argv: argument vector
  * Return: 0 on success, non-zero value on failure...100%
  */
-int main(void)
+int main(int argc, char **argv)
 {
 	char *cmd;
 	char *path = getenv("PATH");
+
+	(void)argc;
+	(void)argv;
 
 	while (1)
 	{
 		printf(D_PROMPT);
 
-		cmd = malloc(sizeof(char) * 64);
-		if (fgets(cmd, 64, stdin) == NULL)
+		cmd = malloc(sizeof(char) * MAX_CMD_LENGTH);
+		if (fgets(cmd, MAX_CMD_LENGTH, stdin) == NULL)
 		{
 			free(cmd);
 			exit(EXIT_FAILURE);
 		}
 		cmd[strcspn(cmd, "\n")] = '\0';
 
-		if (strcmp(cmd, "exit") == 0)
+		if (strcmp(cmd, "") == 0)
+		{
+			free(cmd);
+			continue;
+		}
+		else if (strcmp(cmd, "exit") == 0)
 		{
 			free(cmd);
 			exit(EXIT_SUCCESS);
@@ -75,15 +86,21 @@ void execute_command(char *cmd, char *path)
 	int j;
 
 	token = strtok(cmd, " ");
-	args = malloc(sizeof(char *));
+	args = malloc(sizeof(char *) * (MAX_CMD_LENGTH / 2));
+
 	while (token)
 	{
 		args[i] = strdup(token);
 		token = strtok(NULL, " ");
 		i++;
-		args = realloc(args, sizeof(char *) * (i + 1));
 	}
 	args[i] = NULL;
+
+	if (i == 0)
+	{
+		free(args);
+		return;
+	}
 
 	if (strcmp(args[0], "ls") == 0)
 	{
