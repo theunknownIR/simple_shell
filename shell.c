@@ -1,8 +1,4 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <string.h>
-#include <sys/wait.h>
+#include "shell.h"
 
 #define D_PROMPT "$ "
 #define MAX_CMD_LENGTH 64

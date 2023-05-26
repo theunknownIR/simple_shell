@@ -6,6 +6,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <sys/wait.h>
+#include <sys/types.h>
 
 #define D_PROMPT "$ "
 
